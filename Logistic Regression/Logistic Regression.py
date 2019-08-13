@@ -39,6 +39,45 @@ def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 
+def newton(X, y):
+    """
+    Input:
+        X: np.array with shape [N, 3]. Input. 
+        y: np.array with shape [N, 1]. Label.
+    Return:
+        beta: np.array with shape [1, 3]. Optimal params with newton method
+    """
+    N = X.shape[0]
+    #initialization
+    beta = np.ones((1, 3))
+    #shape [N, 1]
+    z = X.dot(beta.T)
+    #log-likehood
+    old_l = 0
+    new_l = np.sum(-y*z + np.log(1+np.exp(z)))
+    iters = 0
+    while( np.abs(old_l-new_l) > 1e-5):
+        #shape [N, 1]
+        p1 = np.exp(z) / (1 + np.exp(z))
+        #shape [N, N]
+        p = np.diag((p1 * (1-p1)).reshape(N))
+        #shape [1, 3]
+        first_order = -np.sum(X * (y - p1), 0, keepdims=True)
+        #shape [3, 3]
+        second_order = X.T .dot(p).dot(X)
+
+        #update
+        beta -= first_order.dot(np.linalg.inv(second_order))
+        z = X.dot(beta.T)
+        old_l = new_l
+        new_l = np.sum(-y*z + np.log( 1+np.exp(z) ) )
+
+        iters += 1
+    print("iters: ", iters)
+    print(new_l)
+    return beta
+
+
 def gradDescent(x, y, lr=0.05, iter=150):
     n = x.shape[0]
 
